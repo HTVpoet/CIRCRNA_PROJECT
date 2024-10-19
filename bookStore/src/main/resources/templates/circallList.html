@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" xmlns:th="https://www.thymeleaf.com">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Circrna Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/0faddc1af8.js" crossorigin="anonymous"></script>
+    <style>
+        .summary-container {
+            width: 55%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .summary-item {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white" href="#">Circrna Tool</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" aria-current="page" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="available_circrna">Available Circrna</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="available_circall">Available Circall</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="available_ciri">Available Ciri</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="available_findciri">Available Findcirc</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="my_circrna">My Circrna</a>
+                </li>
+            </ul>
+            <div>
+                <a class="nav-link text-white" href="circrna_register">New Circrna Register</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div>
+    <form>
+        <div class="input-group input-group-sm hidden-xs" style="width: 150px;">
+            <input type="text" name="circId" class="form-control pull-right" placeholder="Search">
+            <div class="input-group-btn">
+                <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </form>
+    <a href="/available_ciri" class="btn btn-sm btn-info btn-flat pull-left">Select Dataset BeatAML</a>
+
+    <div class="summary-container">
+        <div class="summary-title">Data Overview</div>
+        <div class="summary-item">Total CircRNAs: <span th:text="${countcircall}"></span></div>
+        <div class="summary-item">Number of junctionFragment more than 5: <span th:text="${countJF}"></span></div>
+        <div class="summary-item">Total patient: <span th:text="${srr191} + ${srr200} + ${srr203}"></span></div>
+        <div class="summary-item">Patient 191: <span th:text="${srr191}"></span></div>
+        <div class="summary-item">Patient 200: <span th:text="${srr200}"></span></div>
+        <div class="summary-item">Patient 203: <span th:text="${srr203}"></span></div>
+        <div class="summary-item" th:each="z: ${count_chr}"><span th:text="'Number of Chrom ' + ${z.chr} + ': ' + ${z.count_chr} "></span></div>
+        <div style="text-align: center;">
+            <h1>Percentage of Patient_sample</h1>
+            <canvas id="pieChart" width="10" height="10"></canvas>
+        </div>
+        <script>
+            var ctx = document.getElementById('pieChart').getContext('2d');
+            var srr191_ = [[${srr191_}]] ;
+            var srr200_ = [[${srr200_}]] ;
+            var srr203_ = [[${srr203_}]]
+
+            var chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Patients 191', 'Patients 200', 'Patients 203'],
+                    datasets: [{
+                        label: 'Patients Distribution',
+                        data: [srr191_, srr200_, srr203_],
+                        backgroundColor: ['#FF6384', '#36A2EB', '#4BC0C0'],
+                        hoverOffset: 4
+                    }]
+                }
+            });
+        </script>
+
+        <h1>Bar Chart for Chromosome Counts</h1>
+
+        <canvas id="barChart" width="10" height="10"></canvas> <!-- The canvas for the chart -->
+
+        <script th:inline="javascript">
+            /* Data passed from Spring Controller */
+
+            var chrLabels = [[${chr_labels}]];  // Chromosome labels
+            var chrCounts = [[${chr_percentage}]];  // Chromosome counts
+
+            /* Create Bar Chart using Chart.js */
+            var ctx = document.getElementById('barChart').getContext('2d');
+            var barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chrLabels,  // X-axis labels (chromosomes)
+                    datasets: [{
+                        label: 'Chromosome Count',
+                        data: chrCounts,  // Y-axis data (counts)
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
+
+
+
+    <div class="container my-5 col-md-8">
+        <table class="table  table-striped table-hover">
+            <thead>
+            <tr>
+                <th scope="col">Circ ID</th>
+                <th scope="col">Chr</th>
+                <th scope="col">Start Position</th>
+                <th scope="col">End Position</th>
+                <th scope="col">junction Fragment Count</th>
+                <th scope="col">junction FPM</th>
+                <th scope="col">median circlen</th>
+                <th scope="col">Patient Sample</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i: ${circall}">
+                <td th:text="${i.circId}"></td>
+                <td th:text="${i.chr}"></td>
+                <td th:text="${i.startCirc}"></td>
+                <td th:text="${i.endCirc}"></td>
+                <td th:text="${i.junctionFragmentCount}"></td>
+                <td th:text="${i.junctionFPM}"></td>
+                <td th:text="${i.medianCirclen}"></td>
+                <td th:text="${i.patient_sample}"></td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
+</body>
+</html>
